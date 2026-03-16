@@ -9,13 +9,16 @@ on:
 jobs:
   postman-tests:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt into Node.js 24
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '24'  # update from 20 to 24
 
       - name: Install Newman
         run: npm install -g newman
