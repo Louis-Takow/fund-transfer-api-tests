@@ -23,11 +23,17 @@ jobs:
         with:
           node-version: '24'  # Ensure Newman runs on Node 24
 
-      - name: Install Newman
-        run: npm install -g newman
+      - name: Install Newman and HTML reporter
+        run: npm install -g newman newman-reporter-html
 
       - name: Run Postman Collection (ignore failures)
         run: |
           newman run "Fund Transfer API - Test Suite & Documentation.postman_collection.json" \
             -e "QA Environment.postman_environment.json" \
             -r cli,html || true
+
+      - name: Upload Newman HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-html-report
+          path: newman-report.html
