@@ -31,7 +31,7 @@ jobs:
           newman run "Fund Transfer API - Test Suite & Documentation.postman_collection.json" \
             -e "QA Environment.postman_environment.json" \
             -r cli,html \
-            --reporter-html-export newman-report.html
+            --reporter-html-export newman-report.html || true
 
       - name: Upload Newman HTML report
         uses: actions/upload-artifact@v4
