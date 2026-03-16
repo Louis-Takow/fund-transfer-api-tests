@@ -1,0 +1,242 @@
+{
+  "info": {
+    "_postman_id": "124459f6-db27-4d41-a796-23f2225ad163",
+    "name": "Transfer API Mock",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "28582263",
+    "_collection_link": "https://go.postman.co/collection/28582263-124459f6-db27-4d41-a796-23f2225ad163?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "/api/v1/transfers",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "/api/v1/transfers",
+          "path": [
+            "api",
+            "v1",
+            "transfers"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "201 Success",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "/api/v1/transfers",
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"transfer_id\": \"TXN-20260223-001\",\n    \"status\": \"pending\",\n    \"exchange_rate\": 1,\n    \"fees\": 2.5,\n    \"estimated_completion\": \"2026-02-24T10:00:00Z\"\n}"
+        },
+        {
+          "name": "400 Validation Error",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "/api/v1/transfers",
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"VALIDATION_ERROR\",\n    \"message\": \"Invalid request parameters\",\n    \"errors\": [\n        {\n            \"field\": \"from_account\",\n            \"code\": \"REQUIRED\",\n            \"message\": \"from_account is required\"\n        }\n    ]\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "/api/v1/transfers",
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"UNAUTHORIZED\",\n    \"message\": \"Missing or invalid authentication token\"\n}"
+        },
+        {
+          "name": "403 Forbidden",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "/api/v1/transfers",
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"ACCOUNT_RESTRICTED\",\n    \"message\": \"Source account is frozen and cannot initiate transfers\"\n}"
+        },
+        {
+          "name": "422 Insufficient Funds",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "/api/v1/transfers",
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "code": 422,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json",
+              "description": "",
+              "type": "text"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"INSUFFICIENT_FUNDS\",\n    \"message\": \"Account balance insufficient for this transfer\",\n    \"available_balance\": 1,\n    \"requested_amount\": 999999.99\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "url",
+      "value": "https://336e0de9-7593-45ff-b35a-d6ed35a702e0.mock.pstmn.io"
+    }
+  ]
+}

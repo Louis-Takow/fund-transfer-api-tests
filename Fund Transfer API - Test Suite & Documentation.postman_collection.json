@@ -1,0 +1,718 @@
+{
+  "info": {
+    "_postman_id": "ff50f5e5-6c6a-45c0-a32b-024170d3abbc",
+    "name": "Fund Transfer API - Test Suite & Documentation",
+    "description": "# Fund Transfer API — Test Suite Documentation\n\n**Date:** February 23, 2026  \n**Author:** Louis Takow  \n**Endpoint:** POST /api/v1/transfers\n\n---\n\n## Overview\n\n- **Total Test Cases:** 9\n    \n- **Total Assertions:** 37\n    \n- **Mock Server:** Postman Mock Server (no live API was provided)\n    \n- **Approach:** Mock examples simulate 201, 400, 401, 403, 422 responses\n    \n\n---\n\n## How to Run\n\n1. Import `Fund_Transfer_API_Tests.postman_collection.json` into Postman\n    \n2. Import `QA_Environment.postman_environment.json`\n    \n3. Select **QA Environment** from the top-right dropdown\n    \n4. Click **Run Collection**\n    \n5. All 9 tests execute with 37 assertions — expect all green\n    \n\n---\n\n## Test Coverage\n\n| TC_ID | Name | Category | Mock Code | Assertions |\n| --- | --- | --- | --- | --- |\n| TC_001 | Valid Transfer | Happy Path | 201 | 9 |\n| TC_002 | Missing from_account | Field Validation | 400 | 4 |\n| TC_003 | Negative Amount | Field Validation | 400 | 3 |\n| TC_004 | Invalid Currency | Field Validation | 400 | 3 |\n| TC_005 | Missing Token | Auth | 401 | 4 |\n| TC_006 | Frozen Account | Business Rules | 403 | 3 |\n| TC_007 | Insufficient Funds | Business Rules | 422 | 3 |\n| TC_008 | Large Amount | Edge Cases | 201 | 4 |\n| TC_009 | Recurring Enabled | Edge Cases | 201 | 4 |\n\n---\n\n## Test Data — Accounts Used\n\n| Variable | Value | Purpose |\n| --- | --- | --- |\n| validFromAccount | ACC-10001-USD | Active source account |\n| validToAccount | ACC-20002-USD | Active destination |\n| frozenAccount | ACC-30003-FROZEN | Frozen/blocked account |\n| lowBalanceAccount | ACC-40004-LOWBAL | Account with $1 balance |\n\n---\n\n## Test Data Considerations\n\n### Amounts Tested\n\n| Scenario | Value | Expected |\n| --- | --- | --- |\n| Normal | 100.00 | 201 |\n| Negative | \\-100.00 | 400 |\n| Large | 999999999.99 | 201/400 |\n| Recurring | 250.00 | 201 |\n\n---\n\n### Dates Used (relative to Feb 23, 2026)\n\n| Field | Value | Why |\n| --- | --- | --- |\n| scheduled_date | 2026-03-01T10:00:00Z | Future date (valid) |\n| recurring end | 2026-06-01T09:00:00Z | 3 months out |\n| estimated_completion | 2026-02-24T10:00:00Z | Next business day |\n\n---\n\n### Currencies Tested\n\n- Valid: USD\n    \n- Invalid: FAKECOIN\n    \n\n---\n\n## Key Fintech Risks Addressed\n\n1. Frozen accounts cannot send money (TC_006)\n    \n2. Insufficient balance caught before transfer (TC_007)\n    \n3. No access without authentication (TC_005)\n    \n4. Invalid inputs rejected with clear errors (TC_002–004)\n    \n5. Large amounts do not crash the server (TC_008)\n    \n6. Recurring transfers create valid transfer records (TC_009)\n    \n7. All success responses include:\n    \n    - transfer_id\n        \n    - status\n        \n    - exchange_rate\n        \n    - fees\n        \n    - estimated_completion\n        \n\n---\n\n## Mock vs Real API Note\n\n- Tests use Postman Mock Server since no live API was provided\n    \n- To run against real API:\n    \n    - Change `baseUrl` in environment\n        \n    - Remove `x-mock-response-code` headers\n        \n- All test assertions validate real response structure",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "28582263",
+    "_collection_link": "https://go.postman.co/collection/28582263-ff50f5e5-6c6a-45c0-a32b-024170d3abbc?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "01 - Happy Path",
+      "item": [
+        {
+          "name": "TC_001 - Valid Transfer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_001: Valid Transfer - All Fields\r",
+                  "// Priority: P0 | Category: Happy Path\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 201 Created\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has transfer_id (non-empty string)\", function () {\r",
+                  "    var r = pm.response.json();\r",
+                  "    pm.expect(r.transfer_id).to.be.a(\"string\");\r",
+                  "    pm.expect(r.transfer_id.length).to.be.greaterThan(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Status is valid enum: pending, completed, or failed\", function () {\r",
+                  "    var r = pm.response.json();\r",
+                  "    pm.expect(r.status).to.be.oneOf([\"pending\", \"completed\", \"failed\"]);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Exchange rate is a positive number\", function () {\r",
+                  "    var r = pm.response.json();\r",
+                  "    pm.expect(r.exchange_rate).to.be.a(\"number\");\r",
+                  "    pm.expect(r.exchange_rate).to.be.greaterThan(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Fees is a non-negative number\", function () {\r",
+                  "    var r = pm.response.json();\r",
+                  "    pm.expect(r.fees).to.be.a(\"number\");\r",
+                  "    pm.expect(r.fees).to.be.at.least(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Estimated completion is valid datetime\", function () {\r",
+                  "    var r = pm.response.json();\r",
+                  "    var d = new Date(r.estimated_completion);\r",
+                  "    pm.expect(d.toString()).to.not.equal(\"Invalid Date\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response has ALL 5 required fields\", function () {\r",
+                  "    pm.expect(pm.response.json()).to.have.all.keys(\r",
+                  "        \"transfer_id\", \"status\", \"exchange_rate\",\r",
+                  "        \"fees\", \"estimated_completion\"\r",
+                  "    );\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Content-Type header is application/json\", function () {\r",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\"))\r",
+                  "      .to.include(\"application/json\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response time under 2 seconds\", function () {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "201",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{validFromAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 100.00,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Monthly rent payment\",\r\n  \"scheduled_date\": \"2026-03-01T10:00:00Z\",\r\n  \"recurring\": {\r\n    \"enabled\": false,\r\n    \"frequency\": \"monthly\",\r\n    \"end_date\": \"2027-02-23T10:00:00Z\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Field Validation",
+      "item": [
+        {
+          "name": "TC_002 - Missing from_account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_002: Missing from_account field\r",
+                  "// Priority: P0 | Category: Field Validation\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 400 Bad Request\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error response has error field\", function () {\r",
+                  "    pm.expect(pm.response.json()).to.have.property(\"error\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error response has message field\", function () {\r",
+                  "    pm.expect(pm.response.json()).to.have.property(\"message\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No transfer_id in error response\", function () {\r",
+                  "    pm.expect(pm.response.json().transfer_id).to.be.undefined;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "400",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 100.00,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Monthly rent payment\",\r\n  \"scheduled_date\": \"2026-03-01T10:00:00Z\",\r\n  \"recurring\": {\r\n    \"enabled\": false,\r\n    \"frequency\": \"monthly\",\r\n    \"end_date\": \"2027-02-23T10:00:00Z\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC_003 - Negative Amount",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_003: Negative amount should be rejected\r",
+                  "// Priority: P0 | Category: Field Validation\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 400 Bad Request\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error response exists\", function () {\r",
+                  "    pm.expect(pm.response.json()).to.have.property(\"error\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No transfer created for invalid amount\", function () {\r",
+                  "    pm.expect(pm.response.json().transfer_id).to.be.undefined;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "400",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{validFromAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": -100.00,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Negative amount test\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC_004 - Invalid Currency",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_004: Invalid currency code\r",
+                  "// Priority: P0 | Category: Field Validation\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 400 Bad Request\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error response is structured\", function () {\r",
+                  "    var r = pm.response.json();\r",
+                  "    pm.expect(r).to.have.property(\"error\");\r",
+                  "    pm.expect(r).to.have.property(\"message\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No transfer created for bad currency\", function () {\r",
+                  "    pm.expect(pm.response.json().transfer_id).to.be.undefined;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "400",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{validFromAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 100.00,\r\n  \"currency\": \"FAKECOIN\",\r\n  \"description\": \"Invalid currency test\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Auth",
+      "item": [
+        {
+          "name": "TC_005 - Missing Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_005: No authentication token provided\r",
+                  "// Priority: P0 | Category: Auth\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 401 Unauthorized\", function () {\r",
+                  "    pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error says unauthorized\", function () {\r",
+                  "    var text = JSON.stringify(pm.response.json()).toLowerCase();\r",
+                  "    pm.expect(text).to.include(\"unauthorized\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No sensitive data leaked in error response\", function () {\r",
+                  "    var text = pm.response.text().toLowerCase();\r",
+                  "    pm.expect(text).to.not.include(\"stack\");\r",
+                  "    pm.expect(text).to.not.include(\"sql\");\r",
+                  "    pm.expect(text).to.not.include(\"password\");\r",
+                  "    pm.expect(text).to.not.include(\"database\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No transfer created without auth\", function () {\r",
+                  "    pm.expect(pm.response.json().transfer_id).to.be.undefined;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "401",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{validFromAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 100.00,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Monthly rent payment\",\r\n  \"scheduled_date\": \"2026-03-01T10:00:00Z\",\r\n  \"recurring\": {\r\n    \"enabled\": false,\r\n    \"frequency\": \"monthly\",\r\n    \"end_date\": \"2027-02-23T10:00:00Z\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Business Rules",
+      "item": [
+        {
+          "name": "TC_006 - Frozen Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_006: Frozen account cannot send money\r",
+                  "// Priority: P0 | Category: Business Rules\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 403 Forbidden\", function () {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 403]);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error mentions account restriction\", function () {\r",
+                  "    var text = JSON.stringify(pm.response.json()).toLowerCase();\r",
+                  "    var blocked = text.includes(\"frozen\") ||\r",
+                  "                  text.includes(\"restricted\") ||\r",
+                  "                  text.includes(\"blocked\");\r",
+                  "    pm.expect(blocked).to.be.true;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No transfer created from frozen account\", function () {\r",
+                  "    pm.expect(pm.response.json().transfer_id).to.be.undefined;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "403",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{frozenAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 100.00,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Monthly rent payment\",\r\n  \"scheduled_date\": \"2026-03-01T10:00:00Z\",\r\n  \"recurring\": {\r\n    \"enabled\": false,\r\n    \"frequency\": \"monthly\",\r\n    \"end_date\": \"2027-02-23T10:00:00Z\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC_007 - Insufficient Funds",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_007: Insufficient funds in source account\r",
+                  "// Priority: P0 | Category: Business Rules\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 422 Unprocessable Entity\", function () {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Error clearly states insufficient funds\", function () {\r",
+                  "    var text = JSON.stringify(pm.response.json()).toLowerCase();\r",
+                  "    var hasFundsError = text.includes(\"insufficient\") ||\r",
+                  "                        text.includes(\"balance\") ||\r",
+                  "                        text.includes(\"funds\");\r",
+                  "    pm.expect(hasFundsError).to.be.true;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No transfer created when funds are insufficient\", function () {\r",
+                  "    pm.expect(pm.response.json().transfer_id).to.be.undefined;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "422",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{lowBalanceAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 999999.99,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Insufficient funds test\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Edge Cases",
+      "item": [
+        {
+          "name": "TC_008 - Large Amount",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_008: Large transfer amount\r",
+                  "// Priority: P1 | Category: Edge Cases\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Large amount handled — no server crash (not 500)\", function () {\r",
+                  "    pm.expect(pm.response.code).to.not.equal(500);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Returns success or controlled rejection\", function () {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400, 422]);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response body is valid JSON\", function () {\r",
+                  "    pm.response.to.be.json;\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"If accepted, transfer_id exists\", function () {\r",
+                  "    if (pm.response.code === 201) {\r",
+                  "        pm.expect(pm.response.json().transfer_id).to.exist;\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "201",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{validFromAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 999999999.99,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Monthly rent payment\",\r\n  \"scheduled_date\": \"2026-03-01T10:00:00Z\",\r\n  \"recurring\": {\r\n    \"enabled\": false,\r\n    \"frequency\": \"monthly\",\r\n    \"end_date\": \"2027-02-23T10:00:00Z\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC_009 - Recurring Enabled",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// ==============================================\r",
+                  "// TC_009: Recurring transfer enabled\r",
+                  "// Priority: P1 | Category: Edge Cases\r",
+                  "// ==============================================\r",
+                  "\r",
+                  "pm.test(\"Returns 201 Created\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Transfer ID generated for recurring setup\", function () {\r",
+                  "    var r = pm.response.json();\r",
+                  "    pm.expect(r.transfer_id).to.be.a(\"string\");\r",
+                  "    pm.expect(r.transfer_id.length).to.be.greaterThan(0);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Status is pending for future recurring\", function () {\r",
+                  "    pm.expect(pm.response.json().status).to.be.oneOf([\"pending\", \"completed\"]);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"All response fields present\", function () {\r",
+                  "    pm.expect(pm.response.json()).to.have.all.keys(\r",
+                  "        \"transfer_id\", \"status\", \"exchange_rate\",\r",
+                  "        \"fees\", \"estimated_completion\"\r",
+                  "    );\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-mock-response-code",
+                "value": "201",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"from_account\": \"{{validFromAccount}}\",\r\n  \"to_account\": \"{{validToAccount}}\",\r\n  \"amount\": 100.00,\r\n  \"currency\": \"USD\",\r\n  \"description\": \"Monthly rent payment\",\r\n  \"scheduled_date\": \"2026-03-01T10:00:00Z\",\r\n  \"recurring\": {\r\n    \"enabled\": true,\r\n    \"frequency\": \"monthly\",\r\n    \"end_date\": \"2027-02-23T10:00:00Z\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transfers"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
