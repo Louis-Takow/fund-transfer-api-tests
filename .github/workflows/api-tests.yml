@@ -29,5 +29,5 @@ jobs:
       - name: Run Postman Collection (ignore failures)
         run: |
           newman run "Fund Transfer API - Test Suite & Documentation.postman_collection.json" \
-            -e "QA_Environment.postman_environment.json" \
+            -e "QA Environment.postman_environment.json" \
             -r cli,html || true
