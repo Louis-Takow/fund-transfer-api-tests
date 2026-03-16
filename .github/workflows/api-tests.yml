@@ -14,12 +14,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3  # Updated to latest v3
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '24'  # Use Node.js 24 for Newman
+          node-version: '24'  # Upgrade from 20 → 24
 
       - name: Install Newman
         run: npm install -g newman
