@@ -28,6 +28,6 @@ jobs:
 
       - name: Run Postman Collection (ignore failures)
         run: |
-          newman run Fund_Transfer_API_Tests.postman_collection.json \
-            -e QA_Environment.postman_environment.json \
+          newman run "Fund_Transfer_API_Tests.postman_collection.json" \
+            -e "QA_Environment.postman_environment.json" \
             -r cli,html || true
