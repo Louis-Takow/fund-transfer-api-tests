@@ -33,7 +33,7 @@ jobs:
             -r cli,html || true
 
       - name: Upload Newman HTML report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: newman-html-report
           path: newman-report.html
