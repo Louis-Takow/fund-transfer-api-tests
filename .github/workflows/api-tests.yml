@@ -10,18 +10,21 @@ jobs:
   postman-tests:
     runs-on: ubuntu-latest
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt into Node.js 24
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Force all JS actions to Node 24
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3  # Updated to latest v3
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '24'  # update from 20 to 24
+          node-version: '24'  # Use Node.js 24 for Newman
 
       - name: Install Newman
         run: npm install -g newman
 
       - name: Run Postman Collection
-        run: newman run Fund_Transfer_API_Tests.postman_collection.json -e QA_Environment.postman_environment.json -r cli,html
+        run: newman run Fund_Transfer_API_Tests.postman_collection.json \
+             -e QA_Environment.postman_environment.json \
+             -r cli,html
