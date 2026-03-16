@@ -15,16 +15,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: List files in repo root
+        run: ls -la
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '24'  # Ensure Newman runs on Node 24
+          node-version: '24'  # Upgrade from 20 → 24
 
       - name: Install Newman
         run: npm install -g newman
 
-      - name: Run Postman Collection (ignore failures)
+      - name: Run Postman Collection
         run: |
           newman run Fund_Transfer_API_Tests.postman_collection.json \
-            -e QA_Environment.postman_environment.json \
-            -r cli,html || true
+          -e QA_Environment.postman_environment.json \
+          -r cli,html
+
+      - name: Upload Newman HTML Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: newman-html-report
+          path: newman-report.html
